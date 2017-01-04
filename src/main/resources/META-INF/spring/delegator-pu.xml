@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:os-core="http://www.openspaces.org/schema/core"
+       xmlns:os-events="http://www.openspaces.org/schema/events"
+       xmlns:os-remoting="http://www.openspaces.org/schema/remoting"
+       xmlns:os-sla="http://www.openspaces.org/schema/sla"
+       xmlns:os-gateway="http://www.openspaces.org/schema/core/gateway"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+       http://www.openspaces.org/schema/core http://www.openspaces.org/schema/12.0/core/openspaces-core.xsd
+       http://www.openspaces.org/schema/events http://www.openspaces.org/schema/12.0/events/openspaces-events.xsd
+       http://www.openspaces.org/schema/remoting http://www.openspaces.org/schema/12.0/remoting/openspaces-remoting.xsd
+       http://www.openspaces.org/schema/sla http://www.openspaces.org/schema/12.0/sla/openspaces-sla.xsd
+       http://www.openspaces.org/schema/core/gateway http://www.openspaces.org/schema/12.0/core/gateway/openspaces-gateway.xsd">
+
+    <!--
+        We need to deploy as many of these "delegator PUs" as there are partition in the source Space.
+
+        This is because the source Space calculates which delegator to talk to using the "running number"
+        of its partition. Running number is a partition counter that is incremented in order of partition
+        instantiation by the Space deployment process.
+
+        If we don't make a similarly-named delegator available (by deploying enough), the source Space will
+        not be able to connect to its expected delegator, which it looks up by name.
+    -->
+    <os-gateway:delegator id="delegator"
+                          local-gateway-name="NEWYORK_${clusterInfo.runningNumber}" gateway-lookups="gatewayLookups">
+        <os-gateway:delegations>
+            <os-gateway:delegation target="LONDON_${clusterInfo.runningNumber}"/>
+        </os-gateway:delegations>
+    </os-gateway:delegator>
+
+    <!--
+    Here we expect to find the same number of (WAN-embedded) lookup services as there are
+    delegators. The Lookup Services are started inside of the delegator beans during
+    gateway bootstrap.
+
+    The reason we need multiple Lookup Services per site (i.e. New York and London) is that
+    WAN sub-components would be same-named across gateway connections. Providing this deployment
+    count prevents cross-talk.
+    -->
+    <os-gateway:lookups id="gatewayLookups">
+        <os-gateway:lookup gateway-name="NEWYORK_0"
+                           host="ny-gateway-host-machine" discovery-port="10001" communication-port="9000"/>
+        <os-gateway:lookup gateway-name="NEWYORK_1"
+                           host="ny-gateway-host-machine" discovery-port="10002" communication-port="9001"/>
+        <os-gateway:lookup gateway-name="NEWYORK_2"
+                           host="ny-gateway-host-machine" discovery-port="10003" communication-port="9002"/>
+        <os-gateway:lookup gateway-name="LONDON_0"
+                           host="london-gateway-host-machine" discovery-port="10003" communication-port="9003"/>
+        <os-gateway:lookup gateway-name="LONDON_1"
+                           host="london-gateway-host-machine" discovery-port="10004" communication-port="9004"/>
+        <os-gateway:lookup gateway-name="LONDON_2"
+                           host="london-gateway-host-machine" discovery-port="10005" communication-port="9005"/>
+    </os-gateway:lookups>
+</beans>
