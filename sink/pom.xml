@@ -2,40 +2,44 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+     <parent>
+        <groupId>com.gigaspaces.gigapro</groupId>
+        <artifactId>multi-wan</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    
     <modelVersion>4.0.0</modelVersion>
-
-    <groupId>multi-wan</groupId>
     <artifactId>sink</artifactId>
-    <version>1.0-SNAPSHOT</version>
-
+    <packaging>jar</packaging>
+    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <skipTests>false</skipTests>
-        <xap.version>12.0.1</xap.version>
+        <gsType>PU</gsType>
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>com.gigaspaces</groupId>
-            <artifactId>xap-wan-gateway</artifactId>
-            <version>${xap.version}</version>
+            <artifactId>gs-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>com.gigaspaces</groupId>
-            <artifactId>xap-wan-gateway-spring</artifactId>
-            <version>${xap.version}</version>
+            <artifactId>gs-openspaces</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.gigaspaces.gigapro</groupId>
+            <artifactId>space-model</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
-
+    
     <build>
+        <finalName>sink</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
+                <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
-
 </project>

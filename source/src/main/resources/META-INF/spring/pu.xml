@@ -9,22 +9,46 @@
        xmlns:os-gateway="http://www.openspaces.org/schema/core/gateway"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
-       http://www.openspaces.org/schema/core http://www.openspaces.org/schema/12.0/core/openspaces-core.xsd
-       http://www.openspaces.org/schema/events http://www.openspaces.org/schema/12.0/events/openspaces-events.xsd
-       http://www.openspaces.org/schema/remoting http://www.openspaces.org/schema/12.0/remoting/openspaces-remoting.xsd
-       http://www.openspaces.org/schema/sla http://www.openspaces.org/schema/12.0/sla/openspaces-sla.xsd
-       http://www.openspaces.org/schema/core/gateway http://www.openspaces.org/schema/12.0/core/gateway/openspaces-gateway.xsd">
+       http://www.openspaces.org/schema/core http://www.openspaces.org/schema/10.1/core/openspaces-core.xsd
+       http://www.openspaces.org/schema/events http://www.openspaces.org/schema/10.1/events/openspaces-events.xsd
+       http://www.openspaces.org/schema/remoting http://www.openspaces.org/schema/10.1/remoting/openspaces-remoting.xsd
+       http://www.openspaces.org/schema/sla http://www.openspaces.org/schema/10.1/sla/openspaces-sla.xsd
+       http://www.openspaces.org/schema/core/gateway http://www.openspaces.org/schema/10.1/core/gateway/openspaces-gateway.xsd">
 
-    <os-core:embedded-space id="space" name="myNYSpace" gateway-targets="gatewayTargets"/>
+    <bean id="propertiesConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
+    <os-core:space id="space" url="/./${space.name}" mirror="true" gateway-targets="gatewayTargets">
+        <os-core:properties>
+            <props>
+                <prop key="cluster-config.mirror-service.url">jini://*/mirror-source${clusterInfo.instanceId}_container/mirror-source${clusterInfo.instanceId}</prop>
+                <prop key="cluster-config.groups.group.repl-policy.processing-type">global-order</prop>
+                <!-- Use ALL IN CACHE -->
+                <prop key="space-config.engine.cache_policy">1</prop>
+                <prop key="space-config.external-data-source.usage">read-only</prop>
+                <prop key="cluster-config.cache-loader.external-data-source">true</prop>
+                <prop key="cluster-config.cache-loader.central-data-source">true</prop>
+            </props>
+        </os-core:properties>
+    </os-core:space>
+
+    <!--
+        Defines a distributed transaction manager.
+    -->
+    <os-core:distributed-tx-manager id="transactionManager"/>
+
+    <!--
+        OpenSpaces simplified space API built on top of IJSpace/JavaSpace.
+    -->
+    <os-core:giga-space id="gigaSpace" space="space" tx-manager="transactionManager"/>
+    
     <!--
         Each partition of myNYSpace has its own delegator. Multiple delegators are
         distinguished by the partition's "running number". Running number is a partition
         counter that is incremented in order of partition instantiation by the
         Space deployment process.
     -->
-    <os-gateway:targets id="gatewayTargets" local-gateway-name="NEWYORK_${clusterInfo.runningNumber}">
-        <os-gateway:target name="LONDON_${clusterInfo.runningNumber}"/>
+    <os-gateway:targets id="gatewayTargets" local-gateway-name="NEWYORK_${clusterInfo.instanceId}">
+        <os-gateway:target name="LONDON_${clusterInfo.instanceId}"/>
     </os-gateway:targets>
 
 </beans>
