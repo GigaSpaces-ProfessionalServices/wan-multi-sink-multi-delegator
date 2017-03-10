@@ -31,14 +31,10 @@
         </os-core:properties>
     </os-core:space>
 
-    <!--
-        Defines a distributed transaction manager.
-    -->
-    <os-core:distributed-tx-manager id="transactionManager"/>
 
     <!--
         OpenSpaces simplified space API built on top of IJSpace/JavaSpace.
     -->
-    <os-core:giga-space id="gigaSpace" space="space" tx-manager="transactionManager"/>
+    <os-core:giga-space id="gigaSpace" space="space"/>
 
 </beans>

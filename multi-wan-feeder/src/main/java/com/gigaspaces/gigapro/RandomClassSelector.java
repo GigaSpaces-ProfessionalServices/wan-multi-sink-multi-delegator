@@ -66,6 +66,19 @@ public class RandomClassSelector {
         objectsMutableMap.put(DD.class, 10d);
         objectsMutableMap.put(F.class, 1001d);
         objectsMutableMap.put(G3.class, 81d);
+        objectsMutableMap.put(A.class, 12d);
+        objectsMutableMap.put(A1.class, 18d);
+        objectsMutableMap.put(B3.class, 8d);
+        objectsMutableMap.put(BB.class, 40d);
+        objectsMutableMap.put(C.class, 7.9d);
+        objectsMutableMap.put(G.class, 97d);
+        objectsMutableMap.put(H.class, 21d);
+        objectsMutableMap.put(I.class, 12d);
+        objectsMutableMap.put(I1.class, 91d);
+        objectsMutableMap.put(I3.class, 11d);
+        objectsMutableMap.put(K.class, 111d);
+        objectsMutableMap.put(M.class, 30d);
+        objectsMutableMap.put(M3.class, 1d);
         objectsCountMap = Collections.unmodifiableMap(objectsMutableMap);
     }
     private static final double totalWeight;
@@ -80,6 +93,9 @@ public class RandomClassSelector {
         totalWeight = total;
     }
 
+    /**
+     * Returns random class depending on its weight in the map
+     */
     public static final Class<?> get() {
         return objectsWeightIntervalMap.ceilingEntry(ThreadLocalRandom.current().nextDouble() * totalWeight).getValue();
     }

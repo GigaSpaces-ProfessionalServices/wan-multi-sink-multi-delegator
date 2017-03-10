@@ -18,14 +18,19 @@
     <bean id="propertiesConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
     
     <!--
-        We need to deploy as many of these "delegator PUs" as there are partition in the source Space.
+        We need to deploy as many of these "delegator PUs" as there are partitions in the source Space. In current setup the source space uses 3:0 cluster topology.
 
-        This is because the source Space calculates which delegator to talk to using the "running number"
-        of its partition. Running number is a partition counter that is incremented in order of partition
+        This is because the source Space calculates which delegator to talk to using the "instance number"
+        of its partition. Instance number is a partition primary instance counter that is incremented in order of partition
         instantiation by the Space deployment process.
 
+        ${delegator.name} should be passed as NEWYORK_<instance-number> and instance-number varies from 1 to 3
+        ${sink.name} should be passed as LONDON_<instance-number>
         If we don't make a similarly-named delegator available (by deploying enough), the source Space will
         not be able to connect to its expected delegator, which it looks up by name.
+        
+        'start-embedded-lus' option controls whether Lookup Services are started inside of the delegator beans during
+        gateway bootstrap. It is disabled to reuse the Lookup Services deployed to ${source.host} and ${destination.host} hosts.
     -->
     <os-gateway:delegator id="delegator" local-gateway-name="${delegator.name}" gateway-lookups="gatewayLookups" start-embedded-lus="false">
         <os-gateway:delegations>
@@ -34,13 +39,12 @@
     </os-gateway:delegator>
 
     <!--
-    Here we expect to find the same number of (WAN-embedded) lookup services as there are
-    delegators. The Lookup Services are started inside of the delegator beans during
-    gateway bootstrap.
-
-    The reason we need multiple Lookup Services per site (i.e. New York and London) is that
-    WAN sub-components would be same-named across gateway connections. Providing this deployment
-    count prevents cross-talk.
+        Here we expect to find the same number of 'NEWYORK' and 'LONDON' gateway lookups as the count of source space partition primary instances.
+        
+        All 6 gateway lookups are registered in the 2 Lookup services already started on ${source.host} and ${destination.host} on port 4174.
+        
+        To switch to multiple WAN embedded Lookup Services per site (i.e. New York and London) set 'start-embedded-lus' option to true.
+        To fix the port that is used for delegator-sink communication, use 'communication-port' option. 
     -->
     <os-gateway:lookups id="gatewayLookups">
         <os-gateway:lookup gateway-name="NEWYORK_1" host="${source.host}" discovery-port="4174"/>

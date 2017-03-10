@@ -33,8 +33,6 @@ public class Feeder implements InitializingBean, DisposableBean {
 
     private ScheduledExecutorService executorService;
 
-    private ScheduledFuture<?> sf;
-
     private long defaultDelay = 1000;
    
     private int threadCount = 1;
@@ -53,16 +51,14 @@ public class Feeder implements InitializingBean, DisposableBean {
         feederTask = new FeederTask();
         
         for (int i = 0; i < taskCount; i++) {
-            sf = executorService.scheduleAtFixedRate(feederTask, defaultDelay, defaultDelay,
+           executorService.scheduleAtFixedRate(feederTask, defaultDelay, defaultDelay,
                     TimeUnit.MILLISECONDS);
         }
     }
 
     @Override
     public void destroy() throws Exception {
-        sf.cancel(false);
-        sf = null;
-        executorService.shutdown();
+        executorService.shutdownNow();
     }
 
     public class FeederTask implements Runnable {

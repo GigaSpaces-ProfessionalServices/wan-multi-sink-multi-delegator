@@ -18,18 +18,24 @@
     <bean id="propertiesConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
        
     <!--
-    We need to deploy as many of these "sink PUs" as there are partition in the **source** Space.
+        We need to deploy as many of these "sink PUs" as there are "delegator PUs" that equal to partitions count in the **source** Space.
+        
+        This is because the source space calculates which delegator to talk to using delegator name and "instance number" of its partition. 
+        Instance number is a partition primary instance counter that is incremented in order of partition instantiation by the Space deployment process.
+        
+        There is no restriction on the number of partitions on the **sink** Space. This is because
+        the gateway connections are unaware of one-another and the downstream-of-sink replication
+        channel can accept replication packets from more than one connection at a time.
+        
+        ${delegator.name} should be passed as NEWYORK_<instance-number> and instance-number varies from 1 to 3
+        ${sink.name} should be passed as LONDON_<instance-number>
+        
+        If we don't make a similarly-named sink available (by deploying enough), the expected sink
+        will not be able to connect to its upstream delegator, which it looks up by name.
+        
+        'start-embedded-lus' option controls whether Lookup Services are started inside of the delegator beans during
+        gateway bootstrap. It is disabled to reuse the Lookup Services deployed to ${source.host} and ${destination.host} hosts.
 
-    This is because the sink Space calculates which delegator to talk to using the "running number"
-    of its partition. Running number is a partition counter that is incremented in order of partition
-    instantiation by the Space deployment process.
-
-    If we don't make a similarly-named sink available (by deploying enough), the expected sink
-    will not be able to connect to its upstream delegator, which it looks up by name.
-
-    There is no restriction on the number of partitions on the **sink** Space. This is because
-    the gateway connections are unaware of one-another and the downstream-of-sink replication
-    channel can accept replication packets from more than one connection at a time.
     -->
     <os-gateway:sink id="sink" local-gateway-name="${sink.name}"
                      gateway-lookups="gatewayLookups" local-space-url="jini://*/*/${destination.space}?locators=${destination.host}:4174" start-embedded-lus="false">
@@ -39,13 +45,12 @@
     </os-gateway:sink>
 
     <!--
-    Here we expect to find the same number of (WAN-embedded) lookup services as there are
-    delegators. The lookup services are started inside of the delegator beans during WAN
-    gateway bootstrap.
-
-    The reason we need multiple Lookup Services per site (i.e. New York and London) is that
-    WAN subcomponents would be same-named across gateway connections. Providing the deployment count
-    prevents cross-talk.
+        Here we expect to find the same number 'LONDON' gateway lookups as the count of source space partition primary instances.
+        
+        All the gateway lookups are registered in the Lookup services already started on ${destination.host} on port 4174.
+        
+        To switch to multiple WAN embedded Lookup Services per London site set 'start-embedded-lus' option to true.
+        To fix the port that is used for delegator-sink communication, use 'communication-port' option. 
     -->
     <os-gateway:lookups id="gatewayLookups">
         <os-gateway:lookup gateway-name="LONDON_1" host="${destination.host}" discovery-port="4174"/>

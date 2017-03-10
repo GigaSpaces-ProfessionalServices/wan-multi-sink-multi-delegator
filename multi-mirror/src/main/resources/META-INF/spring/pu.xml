@@ -17,10 +17,6 @@
         </property>
     </bean>
 
-    <!--
-        A bean that starts up HSQL as a server. Allows to connect to it from within this context as well
-        as connecting to it remotely.
-     -->
     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
         <property name="url" value="jdbc:sqlserver://${db.host}:${db.port};databaseName=${db.name};integratedSecurity=false"/>
@@ -52,11 +48,15 @@
         An external data source that will be responsible for persisting changes done on the cluster that
         connects to this mirror using Hibernate.
     -->
-   <!--  <bean id="hibernateSpaceSynchronizationEndpoint" class="org.openspaces.persistency.hibernate.DefaultHibernateSpaceSynchronizationEndpointFactoryBean">
+    <!--  <bean id="hibernateSpaceSynchronizationEndpoint" class="org.openspaces.persistency.hibernate.DefaultHibernateSpaceSynchronizationEndpointFactoryBean">
         <property name="sessionFactory" ref="sessionFactory"/>
         <property name="useMerge" value="true"/>
     </bean> -->
-
+    
+    <!--
+        An extended Hibernate based data source that will be responsible for persisting changes done on the cluster that
+        connects to this mirror with monitoring capabilities.
+    -->
     <bean id="hibernateSpaceSynchronizationEndpoint" class="com.gigaspaces.util.mirror.monitor.Mirror" >
         <constructor-arg name="sessionFactory" ref="sessionFactory" />
         <constructor-arg name="useMerge" value="true" />
@@ -64,9 +64,18 @@
         <property name="spaceInstanceId" value="${space.instance.id}"  />  
         <property name="lookupLocator" value="${space.host}:4174"/>
     </bean> 
+   
     <!--
-        The mirror space. Uses the Hibernate external data source. Persists changes done on the Space that
-        connects to this mirror space into the database using Hibernate.
+        The mirror space. Uses the Hibernate external data source. Persists changes done on the space partition that
+        connects to it into the database using Hibernate.
+        
+        The count of deployed mirror PUs should be equal to partition primary instances count in the space.
+        
+        ${mirror.name} should meet a mirror name that is specified in the space 'cluster-config.mirror-service.url' setting.
+        
+        In current setup the following names are allowed:
+            mirror-source<instance-id>, 'instance-id' varies from 1 to 3
+            mirror-destination<instance-id>, 'instance-id' varies from 1 to 7  
     -->
     <os-core:space id="mirror" url="/./${mirror.name}" schema="mirror" space-sync-endpoint="hibernateSpaceSynchronizationEndpoint">
         <os-core:properties>
@@ -75,9 +84,6 @@
                 <prop key="space-config.mirror-service.cluster.partitions">${space.partitions}</prop>
                 <prop key="space-config.mirror-service.cluster.backups-per-partition">${space.backups}</prop>
                 <prop key="space-config.mirror-service.operation-grouping">group-by-replication-bulk</prop>
-                <!-- <prop key="space-config.mirror-service.operation-grouping">group-by-space-transaction</prop>
-                <prop key="space-config.mirror-service.distributed-transaction-processing.wait-timeout">120000</prop>
-                <prop key="space-config.mirror-service.distributed-transaction-processing.wait-for-operations">10000</prop> -->
             </props>
         </os-core:properties>
     </os-core:space>
