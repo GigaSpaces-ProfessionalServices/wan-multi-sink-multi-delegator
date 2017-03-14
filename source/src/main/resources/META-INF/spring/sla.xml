@@ -7,5 +7,5 @@
 
     <bean id="propertiesConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
     
-    <os-sla:sla cluster-schema="partitioned-sync2backup" number-of-instances="${space.partitions}" number-of-backups="${space.backups}" max-instances-per-vm="1" max-instances-per-machine="1"/>
+    <os-sla:sla cluster-schema="partitioned-sync2backup" number-of-instances="${space.partitions}" number-of-backups="${space.backups}" max-instances-per-vm="1" />
 </beans>
