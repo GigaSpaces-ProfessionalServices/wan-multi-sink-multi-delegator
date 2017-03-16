@@ -20,21 +20,18 @@
     <!--
         We need to deploy as many of these "delegator PUs" as there are partitions in the source Space. In current setup the source space uses 3:0 cluster topology.
 
-        This is because the source Space calculates which delegator to talk to using the "instance number"
-        of its partition. Instance number is a partition primary instance counter that is incremented in order of partition
-        instantiation by the Space deployment process.
+        This is because the source Space calculates which delegator to talk to using delegator name and "instance number". 
+        Instance number is an instance counter that is incremented by the Space deployment process while instantiation the delegator.
 
-        ${delegator.name} should be passed as NEWYORK_<instance-number> and instance-number varies from 1 to 3
-        ${sink.name} should be passed as LONDON_<instance-number>
         If we don't make a similarly-named delegator available (by deploying enough), the source Space will
         not be able to connect to its expected delegator, which it looks up by name.
         
         'start-embedded-lus' option controls whether Lookup Services are started inside of the delegator beans during
         gateway bootstrap. It is disabled to reuse the Lookup Services deployed to ${source.host} and ${destination.host} hosts.
     -->
-    <os-gateway:delegator id="delegator" local-gateway-name="${delegator.name}" gateway-lookups="gatewayLookups" start-embedded-lus="false">
+    <os-gateway:delegator id="delegator" local-gateway-name="NEWYORK_${clusterInfo.instanceId}" gateway-lookups="gatewayLookups" start-embedded-lus="false">
         <os-gateway:delegations>
-            <os-gateway:delegation target="${sink.name}"/>
+            <os-gateway:delegation target="LONDON_${clusterInfo.instanceId}"/>
         </os-gateway:delegations>
     </os-gateway:delegator>
 

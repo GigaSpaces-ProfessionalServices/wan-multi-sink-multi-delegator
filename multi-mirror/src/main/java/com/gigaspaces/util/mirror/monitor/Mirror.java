@@ -1,5 +1,7 @@
 package com.gigaspaces.util.mirror.monitor;
 
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import com.gigaspaces.sync.DataSyncOperation;
 import com.gigaspaces.sync.OperationsBatchData;
 import com.gigaspaces.sync.TransactionData;
@@ -14,66 +16,96 @@ import org.openspaces.persistency.hibernate.DefaultHibernateSpaceSynchronization
 import java.lang.management.ManagementFactory;
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint {
-    
+public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint implements InitializingBean, DisposableBean {
+
     public Mirror(SessionFactory sessionFactory, boolean useMerge) {
         super(sessionFactory, null, useMerge, true);
     }
 
-    DecimalFormat DEC_FORMAT;
-    int REPORT_SAMPLING_INTERVAL = 1000;
-    
-    MirrorStats stats = new MirrorStats();
-    MBeanServer mbs;
-    ObjectName statsMeabnName;
-    SpaceModeListener spaceModeListener;
-    String spaceName;
-    Integer partitionId;
-    String lookupLocator;
-    SpaceModeChangedEventManager modeManager;
+    private DecimalFormat DEC_FORMAT;
+    private int statsInterval = 5000; //in milliseconds
+    private boolean debug;
+    private final MirrorStats stats = new MirrorStats();
+    private MBeanServer mbs;
+    private ObjectName statsMbeanName;
+    private SpaceModeListener spaceModeListener;
+    private String spaceName;
+    private Integer partitionId;
+    private String lookupLocator;
+    private SpaceModeChangedEventManager modeManager;
 
-	public String getSpaceName() {
-		return spaceName;
-	}
+    private ScheduledExecutorService executorService;
 
-	public void setSpaceName(String spaceName) {
-		this.spaceName = spaceName;
-	}
+    public String getSpaceName() {
+        return spaceName;
+    }
 
-	long lastReading = System.currentTimeMillis();
-	
-	@Override
+    public void setSpaceName(String spaceName) {
+        this.spaceName = spaceName;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        DEC_FORMAT = new DecimalFormat();
+        DEC_FORMAT.setMaximumFractionDigits(1);
+        
+        executorService = Executors.newScheduledThreadPool(1);
+        executorService.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                stats.calculateGlobalTP();
+                stats.calculateWriteTP();
+                stats.calculateUpdateTP();
+                stats.calculateTakeTP();
+                showStats();
+            }
+        }, statsInterval, statsInterval, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        executorService.shutdownNow();
+        if (mbs.isRegistered(statsMbeanName)) {
+            mbs.unregisterMBean(statsMbeanName);
+        }
+    }
+
+    @Override
     public void onTransactionSynchronization(TransactionData transactionData) {
-        super.onTransactionSynchronization(transactionData);
+        if (!isDebug()) {
+            super.onTransactionSynchronization(transactionData);
+        }
         executeBulk(transactionData.getTransactionParticipantDataItems());
     }
 
     @Override
     public void onOperationsBatchSynchronization(OperationsBatchData batchData) {
-        super.onOperationsBatchSynchronization(batchData);
+        if (!isDebug()) {
+            super.onOperationsBatchSynchronization(batchData);
+        }
         executeBulk(batchData.getBatchDataItems());
     }
 
     public void executeBulk(DataSyncOperation[] opers) {
         if (stats.globalCounter.get() == 0) {
-            synchronized(this) {
+            synchronized (this) {
                 if (stats.globalCounter.get() == 0) {
                     init();
                 }
             }
         }
-        
-		collectStats(opers);
-	    showStats();
-	}
-	
-    void collectStats(DataSyncOperation[] bulk) {
+        collectStats(opers);
+    }
+
+    private void collectStats(DataSyncOperation[] bulk) {
         for (DataSyncOperation dataSyncOperation : bulk) {
             stats.globalCounter.incrementAndGet();
             switch (dataSyncOperation.getDataSyncOperationType()) {
@@ -91,32 +123,24 @@ public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint {
             }
         }
     }
-	
-    void showStats() {
-        int _count = stats.globalCounter.get();
-        if (_count % REPORT_SAMPLING_INTERVAL == 0) {
-            long currentTime = System.currentTimeMillis();
-            double interval = (double) (currentTime - lastReading) / 1000;
-            double currentGlobalTP = REPORT_SAMPLING_INTERVAL / interval;
-			
-			System.out.println(new Date (currentTime)+ 
-					" Mirror - Total TP:"+ DEC_FORMAT.format(currentGlobalTP) +
-					" C:"+  _count+		
-					" W C:"+ stats.counterWrite.get()+		
-					" U C:"+ stats.counterUpdate.get() +
-					" T C:"+ stats.counterTake.get()	+
-					" W TP:"+ DEC_FORMAT.format(stats.getWriteTP()) +		
-					" U TP:"+ DEC_FORMAT.format(stats.getUpdateTP()) +		
-					" T TP:"+ DEC_FORMAT.format(stats.getTakeTP())	
-			);
-            lastReading = currentTime;
-        }
-	}
-	
+
+    private void showStats() {
+        System.out.println(new Date() + " Mirror - " + spaceName + getSpaceInstanceId()
+                + " Total TP:" + DEC_FORMAT.format(stats.getGlobalTP())
+                + " Total C:" + stats.globalCounter.get()
+                + " W C:" + stats.counterWrite.get() 
+                + " U C:" + stats.counterUpdate.get() 
+                + " T C:" + stats.counterTake.get() 
+                + " W TP:" + DEC_FORMAT.format(stats.getWriteTP()) 
+                + " U TP:" + DEC_FORMAT.format(stats.getUpdateTP()) 
+                + " T TP:" + DEC_FORMAT.format(stats.getTakeTP())
+                + " W MAX TP:" + DEC_FORMAT.format(stats.getMaxWriteTP()) 
+                + " U MAX TP:" + DEC_FORMAT.format(stats.getMaxUpdateTP()) 
+                + " T MAX TP:" + DEC_FORMAT.format(stats.getMaxTakeTP()));
+    }
+
     private void init() {
         System.out.println("Mirror started!");
-        DEC_FORMAT = new DecimalFormat();
-        DEC_FORMAT.setMaximumFractionDigits(1);
 
         AdminFactory adminFactory = new AdminFactory();
         adminFactory.addLocator(lookupLocator);
@@ -143,10 +167,9 @@ public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint {
 
             mbs = ManagementFactory.getPlatformMBeanServer();
 
-            // Construct the ObjectName for the MBean we will register
-            statsMeabnName = new ObjectName(Mirror.class.getPackage().getName() + ":type=MirrorStats,name=" + space.getName() + getSpaceInstanceId());
-            mbs.registerMBean(stats, statsMeabnName);
-        } catch(InstanceAlreadyExistsException e) {
+            statsMbeanName = new ObjectName(Mirror.class.getPackage().getName() + ":type=MirrorStats,name=" + space.getName() + getSpaceInstanceId());
+            mbs.registerMBean(stats, statsMbeanName);
+        } catch (InstanceAlreadyExistsException e) {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
@@ -165,12 +188,28 @@ public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint {
     public Integer getPartitionId() {
         return partitionId;
     }
-    
+
     public Integer getSpaceInstanceId() {
         return partitionId + 1;
     }
 
     public void setSpaceInstanceId(Integer spaceInstanceId) {
         this.partitionId = spaceInstanceId - 1;
+    }
+
+    public int getStatsInterval() {
+        return statsInterval;
+    }
+
+    public void setStatsInterval(int statsInterval) {
+        this.statsInterval = statsInterval;
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }

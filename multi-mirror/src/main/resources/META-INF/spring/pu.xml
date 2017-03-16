@@ -38,8 +38,10 @@
                 <prop key="hibernate.cache.use_second_level_cache">false</prop>
                 <prop key="hibernate.cache.use_query_cache">false</prop>
                 <prop key="hibernate.hbm2ddl.auto">update</prop>
-                <prop key="hibernate.show_sql">true</prop>
-                <prop key="hibernate.format_sql">true</prop>
+                <prop key="hibernate.show_sql">false</prop>
+                <prop key="hibernate.format_sql">false</prop>
+                <!-- 'READ_COMMITTED_SNAPSHOT' transaction isolation level -->
+                <prop key="hibernate.connection.isolation">4096</prop>
             </props>
         </property>
     </bean>
@@ -83,7 +85,8 @@
                 <prop key="space-config.mirror-service.cluster.name">${space.name}</prop>
                 <prop key="space-config.mirror-service.cluster.partitions">${space.partitions}</prop>
                 <prop key="space-config.mirror-service.cluster.backups-per-partition">${space.backups}</prop>
-                <prop key="space-config.mirror-service.operation-grouping">group-by-replication-bulk</prop>
+                <!-- <prop key="space-config.mirror-service.operation-grouping">group-by-replication-bulk</prop> -->
+                <prop key="space-config.mirror-service.operation-grouping">group-by-space-transaction</prop>
             </props>
         </os-core:properties>
     </os-core:space>

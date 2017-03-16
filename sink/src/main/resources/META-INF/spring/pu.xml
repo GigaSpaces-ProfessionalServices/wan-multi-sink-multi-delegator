@@ -20,15 +20,12 @@
     <!--
         We need to deploy as many of these "sink PUs" as there are "delegator PUs" that equal to partitions count in the **source** Space.
         
-        This is because the source space calculates which delegator to talk to using delegator name and "instance number" of its partition. 
-        Instance number is a partition primary instance counter that is incremented in order of partition instantiation by the Space deployment process.
+        This is because the source space calculates which delegator to talk to using delegator name and "instance number". 
+        Instance number is an instance counter that is incremented by the Space deployment process while instantiation the sink.
         
         There is no restriction on the number of partitions on the **sink** Space. This is because
         the gateway connections are unaware of one-another and the downstream-of-sink replication
         channel can accept replication packets from more than one connection at a time.
-        
-        ${delegator.name} should be passed as NEWYORK_<instance-number> and instance-number varies from 1 to 3
-        ${sink.name} should be passed as LONDON_<instance-number>
         
         If we don't make a similarly-named sink available (by deploying enough), the expected sink
         will not be able to connect to its upstream delegator, which it looks up by name.
@@ -37,10 +34,10 @@
         gateway bootstrap. It is disabled to reuse the Lookup Services deployed to ${source.host} and ${destination.host} hosts.
 
     -->
-    <os-gateway:sink id="sink" local-gateway-name="${sink.name}"
+    <os-gateway:sink id="sink" local-gateway-name="LONDON_${clusterInfo.instanceId}"
                      gateway-lookups="gatewayLookups" local-space-url="jini://*/*/${destination.space}?locators=${destination.host}:4174" start-embedded-lus="false">
         <os-gateway:sources>
-            <os-gateway:source name="${delegator.name}"/>
+            <os-gateway:source name="NEWYORK_${clusterInfo.instanceId}"/>
         </os-gateway:sources>
     </os-gateway:sink>
 

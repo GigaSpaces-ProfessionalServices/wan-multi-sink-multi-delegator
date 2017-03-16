@@ -17,9 +17,10 @@ pu_dir="${script_dir}/../source/target"
 $JSHOMEDIR/bin/gs.sh deploy -zones NY -properties "embed://space.name=NYSpace;space.partitions=3;space.backups=0" ${pu_dir}/source-space.jar
 
 pu_dir="${script_dir}/../delegator/target"
-$JSHOMEDIR/bin/gs.sh deploy -zones NY -override-name delegator1 -properties "embed://delegator.name=NEWYORK_1;sink.name=LONDON_1;source.host=${NY_MGT_HOST};destination.host=${LN_MGT_HOST}" ${pu_dir}/delegator.jar
-$JSHOMEDIR/bin/gs.sh deploy -zones NY -override-name delegator2 -properties "embed://delegator.name=NEWYORK_2;sink.name=LONDON_2;source.host=${NY_MGT_HOST};destination.host=${LN_MGT_HOST}" ${pu_dir}/delegator.jar
-$JSHOMEDIR/bin/gs.sh deploy -zones NY -override-name delegator3 -properties "embed://delegator.name=NEWYORK_3;sink.name=LONDON_3;source.host=${NY_MGT_HOST};destination.host=${LN_MGT_HOST}" ${pu_dir}/delegator.jar
+$JSHOMEDIR/bin/gs.sh deploy -zones NY -cluster total_members=3 -properties "embed://source.host=${NY_MGT_HOST};destination.host=${LN_MGT_HOST}" ${pu_dir}/delegator.jar
+
+pu_dir="${script_dir}/../multi-wan-feeder/target"
+$JSHOMEDIR/bin/gs.sh deploy -zones NY -properties "embed://source.space=NYSpace;source.host=${NY_MGT_HOST}" ${pu_dir}/feeder.jar
 
 export LOOKUPLOCATORS="${LN_MGT_HOST}:4174"
 
@@ -36,10 +37,4 @@ pu_dir="${script_dir}/../destination/target"
 $JSHOMEDIR/bin/gs.sh deploy -zones LN -properties "embed://space.name=LondonSpace;space.partitions=7;space.backups=0" ${pu_dir}/destination-space.jar
 
 pu_dir="${script_dir}/../sink/target"
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name sink1 -properties "embed://delegator.name=NEWYORK_1;sink.name=LONDON_1;destination.space=LondonSpace;destination.host=${LN_MGT_HOST}" ${pu_dir}/sink.jar
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name sink2 -properties "embed://delegator.name=NEWYORK_2;sink.name=LONDON_2;destination.space=LondonSpace;destination.host=${LN_MGT_HOST}" ${pu_dir}/sink.jar
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name sink3 -properties "embed://delegator.name=NEWYORK_3;sink.name=LONDON_3;destination.space=LondonSpace;destination.host=${LN_MGT_HOST}" ${pu_dir}/sink.jar
-
-export LOOKUPLOCATORS="${NY_MGT_HOST}:4174"
-pu_dir="${script_dir}/../multi-wan-feeder/target"
-$JSHOMEDIR/bin/gs.sh deploy -zones NY -properties "embed://source.space=NYSpace;source.host=${NY_MGT_HOST}" ${pu_dir}/feeder.jar
+$JSHOMEDIR/bin/gs.sh deploy -zones LN -cluster total_members=3 -properties "embed://destination.space=LondonSpace;destination.host=${LN_MGT_HOST}" ${pu_dir}/sink.jar

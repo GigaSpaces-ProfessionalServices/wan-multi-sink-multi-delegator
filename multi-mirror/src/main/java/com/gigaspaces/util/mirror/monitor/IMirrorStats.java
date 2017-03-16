@@ -8,5 +8,8 @@ public interface IMirrorStats {
 	public double getWriteTP();
 	public double getTakeTP();
 	public double getUpdateTP();
+	public double getMaxWriteTP();
+    public double getMaxTakeTP();
+    public double getMaxUpdateTP();
 	public long getPartitionRedologSize();
 }
