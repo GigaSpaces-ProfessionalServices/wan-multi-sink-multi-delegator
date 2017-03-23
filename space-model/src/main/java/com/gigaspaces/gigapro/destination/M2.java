@@ -1,5 +1,7 @@
 package com.gigaspaces.gigapro.destination;
 
+import org.hibernate.annotations.Cascade;
+
 import com.gigaspaces.annotation.pojo.SpaceClass;
 
 import java.io.Serializable;
@@ -50,7 +52,8 @@ public class M2 implements Serializable {
     public void setId(String id) {
         this.id = id;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public B getA() {
         return a;
     }
@@ -135,7 +138,8 @@ public class M2 implements Serializable {
     public void setN(String n) {
         this.n = n;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public O2 getO() {
         return o;
     }
@@ -166,28 +170,32 @@ public class M2 implements Serializable {
     public void setS(String s) {
         this.s = s;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public C2 getT() {
         return t;
     }
     public void setT(C2 t) {
         this.t = t;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public B getU() {
         return u;
     }
     public void setU(B u) {
         this.u = u;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public B getV() {
         return v;
     }
     public void setV(B v) {
         this.v = v;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public Y1 getW() {
         return w;
     }

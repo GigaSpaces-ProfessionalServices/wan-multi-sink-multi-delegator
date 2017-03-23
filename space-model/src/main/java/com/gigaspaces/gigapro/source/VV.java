@@ -1,5 +1,7 @@
 package com.gigaspaces.gigapro.source;
 
+import org.hibernate.annotations.Cascade;
+
 import com.gigaspaces.annotation.pojo.SpaceClass;
 import com.gigaspaces.annotation.pojo.SpaceId;
 
@@ -39,7 +41,8 @@ public class VV {
     public void setId(String id) {
         this.id = id;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public II getA() {
         return a;
     }
@@ -136,14 +139,16 @@ public class VV {
     public void setP(Integer p) {
         this.p = p;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public UU getQ() {
         return q;
     }
     public void setQ(UU q) {
         this.q = q;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public QQ getR() {
         return r;
     }

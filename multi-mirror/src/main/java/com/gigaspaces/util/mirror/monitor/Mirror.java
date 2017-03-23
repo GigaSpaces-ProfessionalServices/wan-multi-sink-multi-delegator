@@ -26,12 +26,12 @@ import javax.management.ObjectName;
 
 public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint implements InitializingBean, DisposableBean {
 
-    public Mirror(SessionFactory sessionFactory, boolean useMerge) {
-        super(sessionFactory, null, useMerge, true);
+    public Mirror(SessionFactory sessionFactory) {
+        super(sessionFactory, null, false, true);
     }
 
     private DecimalFormat DEC_FORMAT;
-    private int statsInterval = 5000; //in milliseconds
+    private int statsInterval = 10000; //in milliseconds
     private boolean debug;
     private final MirrorStats stats = new MirrorStats();
     private MBeanServer mbs;
@@ -59,6 +59,7 @@ public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint impleme
         
         executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(new Runnable() {
+            
             @Override
             public void run() {
                 stats.calculateGlobalTP();
@@ -107,6 +108,9 @@ public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint impleme
 
     private void collectStats(DataSyncOperation[] bulk) {
         for (DataSyncOperation dataSyncOperation : bulk) {
+            if (!isManaged(dataSyncOperation)) {
+                continue;
+            }
             stats.globalCounter.incrementAndGet();
             switch (dataSyncOperation.getDataSyncOperationType()) {
             case REMOVE:
@@ -126,17 +130,17 @@ public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint impleme
 
     private void showStats() {
         System.out.println(new Date() + " Mirror - " + spaceName + getSpaceInstanceId()
-                + " Total TP:" + DEC_FORMAT.format(stats.getGlobalTP())
-                + " Total C:" + stats.globalCounter.get()
-                + " W C:" + stats.counterWrite.get() 
-                + " U C:" + stats.counterUpdate.get() 
-                + " T C:" + stats.counterTake.get() 
-                + " W TP:" + DEC_FORMAT.format(stats.getWriteTP()) 
-                + " U TP:" + DEC_FORMAT.format(stats.getUpdateTP()) 
-                + " T TP:" + DEC_FORMAT.format(stats.getTakeTP())
-                + " W MAX TP:" + DEC_FORMAT.format(stats.getMaxWriteTP()) 
-                + " U MAX TP:" + DEC_FORMAT.format(stats.getMaxUpdateTP()) 
-                + " T MAX TP:" + DEC_FORMAT.format(stats.getMaxTakeTP()));
+                + " Total_TP: " + DEC_FORMAT.format(stats.getGlobalTP())
+                + " Total_C: " + stats.globalCounter.get()
+                + " W_C: " + stats.counterWrite.get() 
+                + " U_C: " + stats.counterUpdate.get() 
+                + " T_C: " + stats.counterTake.get() 
+                + " W_TP: " + DEC_FORMAT.format(stats.getWriteTP()) 
+                + " U_TP: " + DEC_FORMAT.format(stats.getUpdateTP()) 
+                + " T_TP: " + DEC_FORMAT.format(stats.getTakeTP())
+                + " W_MAX_TP: " + DEC_FORMAT.format(stats.getMaxWriteTP()) 
+                + " U_MAX_TP: " + DEC_FORMAT.format(stats.getMaxUpdateTP()) 
+                + " T_MAX_TP: " + DEC_FORMAT.format(stats.getMaxTakeTP()));
     }
 
     private void init() {

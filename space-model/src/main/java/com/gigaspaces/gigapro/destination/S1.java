@@ -1,4 +1,6 @@
 package com.gigaspaces.gigapro.destination;
+import org.hibernate.annotations.Cascade;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -59,7 +61,8 @@ public class S1 implements Serializable {
     public void setF(String f) {
         this.f = f;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public Q1 getG() {
         return g;
     }

@@ -1,5 +1,7 @@
 package com.gigaspaces.gigapro.destination;
 
+import org.hibernate.annotations.Cascade;
+
 import com.gigaspaces.annotation.pojo.SpaceClass;
 import com.gigaspaces.annotation.pojo.SpaceId;
 
@@ -108,7 +110,8 @@ public class D3 implements Serializable {
     public void setI(Date i) {
         this.i = i;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public B getJ() {
         return j;
     }
@@ -121,7 +124,8 @@ public class D3 implements Serializable {
     public void setK(Date k) {
         this.k = k;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public B getL() {
         return l;
     }

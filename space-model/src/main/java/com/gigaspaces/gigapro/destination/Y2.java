@@ -1,5 +1,7 @@
 package com.gigaspaces.gigapro.destination;
 
+import org.hibernate.annotations.Cascade;
+
 import java.io.Serializable;
 
 import javax.persistence.*;
@@ -19,7 +21,8 @@ public class Y2 implements Serializable {
     public void setId(String id) {
         this.id = id;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public B getA() {
         return a;
     }
@@ -32,7 +35,8 @@ public class Y2 implements Serializable {
     public void setB(String b) {
         this.b = b;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public J2 getC() {
         return c;
     }

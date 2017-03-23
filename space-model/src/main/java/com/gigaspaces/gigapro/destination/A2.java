@@ -1,5 +1,7 @@
 package com.gigaspaces.gigapro.destination;
 
+import org.hibernate.annotations.Cascade;
+
 import java.io.Serializable;
 
 import javax.persistence.*;
@@ -18,7 +20,8 @@ public class A2 implements Serializable {
         this.id = id;
     }
     
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public B getA() {
         return a;
     }

@@ -1,5 +1,7 @@
 package com.gigaspaces.gigapro.destination;
 
+import org.hibernate.annotations.Cascade;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -48,7 +50,8 @@ public class V2 implements Serializable {
     public void setD(Date d) {
         this.d = d;
     }
-    @OneToMany(cascade = {CascadeType.MERGE})
+    @OneToMany
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public List<B> getE() {
         return e;
     }

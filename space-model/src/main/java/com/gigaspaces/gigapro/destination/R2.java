@@ -1,4 +1,6 @@
 package com.gigaspaces.gigapro.destination;
+import org.hibernate.annotations.Cascade;
+
 import com.gigaspaces.annotation.pojo.SpaceClass;
 import com.gigaspaces.annotation.pojo.SpaceId;
 
@@ -27,7 +29,8 @@ public class R2 {
     public void setId(String id) {
         this.id = id;
     }
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public J2 getA() {
         return a;
     }
@@ -58,7 +61,8 @@ public class R2 {
     public void setE(Integer e) {
         this.e = e;
     }
-    @OneToMany(cascade = {CascadeType.MERGE})
+    @OneToMany
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public List<Q2> getF() {
         return f;
     }

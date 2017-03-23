@@ -1,4 +1,6 @@
 package com.gigaspaces.gigapro.destination;
+import org.hibernate.annotations.Cascade;
+
 import com.gigaspaces.annotation.pojo.SpaceClass;
 import com.gigaspaces.annotation.pojo.SpaceId;
 
@@ -79,7 +81,8 @@ public class K {
     public void setH(Integer h) {
         this.h = h;
     }
-    @OneToMany(cascade = {CascadeType.MERGE})
+    @OneToMany
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     public List<H> getI() {
         return i;
     }

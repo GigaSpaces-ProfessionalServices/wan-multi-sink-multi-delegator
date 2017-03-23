@@ -40,8 +40,6 @@
                 <prop key="hibernate.hbm2ddl.auto">update</prop>
                 <prop key="hibernate.show_sql">false</prop>
                 <prop key="hibernate.format_sql">false</prop>
-                <!-- 'READ_COMMITTED_SNAPSHOT' transaction isolation level -->
-                <prop key="hibernate.connection.isolation">4096</prop>
             </props>
         </property>
     </bean>
@@ -52,7 +50,6 @@
     -->
     <!--  <bean id="hibernateSpaceSynchronizationEndpoint" class="org.openspaces.persistency.hibernate.DefaultHibernateSpaceSynchronizationEndpointFactoryBean">
         <property name="sessionFactory" ref="sessionFactory"/>
-        <property name="useMerge" value="true"/>
     </bean> -->
     
     <!--
@@ -61,10 +58,10 @@
     -->
     <bean id="hibernateSpaceSynchronizationEndpoint" class="com.gigaspaces.util.mirror.monitor.Mirror" >
         <constructor-arg name="sessionFactory" ref="sessionFactory" />
-        <constructor-arg name="useMerge" value="true" />
         <property name="spaceName" value="${space.name}"  />  
         <property name="spaceInstanceId" value="${space.instance.id}"  />  
         <property name="lookupLocator" value="${space.host}:4174"/>
+        <property name="debug" value="false" />
     </bean> 
    
     <!--
@@ -85,8 +82,7 @@
                 <prop key="space-config.mirror-service.cluster.name">${space.name}</prop>
                 <prop key="space-config.mirror-service.cluster.partitions">${space.partitions}</prop>
                 <prop key="space-config.mirror-service.cluster.backups-per-partition">${space.backups}</prop>
-                <!-- <prop key="space-config.mirror-service.operation-grouping">group-by-replication-bulk</prop> -->
-                <prop key="space-config.mirror-service.operation-grouping">group-by-space-transaction</prop>
+                <prop key="space-config.mirror-service.operation-grouping">group-by-replication-bulk</prop>
             </props>
         </os-core:properties>
     </os-core:space>

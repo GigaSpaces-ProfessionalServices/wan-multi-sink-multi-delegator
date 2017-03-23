@@ -1,5 +1,7 @@
 package com.gigaspaces.gigapro.destination;
 
+import org.hibernate.annotations.Cascade;
+
 import com.gigaspaces.annotation.pojo.SpaceClass;
 import com.gigaspaces.annotation.pojo.SpaceId;
 
@@ -43,7 +45,8 @@ public class L {
     public void setC(String c) {
         this.c = c;
     }
-    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
+    @Cascade({org.hibernate.annotations.CascadeType.SAVE_UPDATE})
+    @OneToMany(fetch = FetchType.EAGER)
     public List<M> getD() {
         return d;
     }

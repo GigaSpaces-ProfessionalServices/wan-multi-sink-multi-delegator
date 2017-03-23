@@ -4,6 +4,7 @@
  */
 package com.gigaspaces.gigapro;
 
+import com.gigaspaces.client.WriteModifiers;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.SpaceInterruptedException;
 import org.openspaces.core.context.GigaSpaceContext;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
@@ -73,8 +73,8 @@ public class Feeder implements InitializingBean, DisposableBean {
                     data[i] = ObjectFactory.create(RandomClassSelector.get());
                     counter.incrementAndGet();
                 }
-                sourceSpace.writeMultiple(data);
-                log.info("--- FEEDER thread: '" + Thread.currentThread().getName() + "' WROTE " + objectCount + " objects");
+                sourceSpace.writeMultiple(data, WriteModifiers.ONE_WAY);
+                log.info("--- FEEDER thread: '" + Thread.currentThread().getName() + "' WROTE " + objectCount + " objects, the total count is + " + getCounter());
             } catch (SpaceInterruptedException e) {
                 // ignore, we are being shutdown
             } catch (Exception e) {

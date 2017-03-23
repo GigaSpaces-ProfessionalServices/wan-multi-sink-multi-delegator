@@ -25,16 +25,15 @@ $JSHOMEDIR/bin/gs.sh deploy -zones NY -properties "embed://source.space=NYSpace;
 export LOOKUPLOCATORS="${LN_MGT_HOST}:4174"
 
 pu_dir="${script_dir}/../multi-mirror/target"
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination1 -properties "embed://mirror.name=mirror-destination1;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=7;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=1" ${pu_dir}/mirror.jar 
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination2 -properties "embed://mirror.name=mirror-destination2;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=7;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=2" ${pu_dir}/mirror.jar
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination3 -properties "embed://mirror.name=mirror-destination3;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=7;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=3" ${pu_dir}/mirror.jar
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination4 -properties "embed://mirror.name=mirror-destination4;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=7;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=4" ${pu_dir}/mirror.jar
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination5 -properties "embed://mirror.name=mirror-destination5;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=7;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=5" ${pu_dir}/mirror.jar
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination6 -properties "embed://mirror.name=mirror-destination6;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=7;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=6" ${pu_dir}/mirror.jar
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination7 -properties "embed://mirror.name=mirror-destination7;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=7;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=7" ${pu_dir}/mirror.jar
+$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination1 -properties "embed://mirror.name=mirror-destination1;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=6;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=1" ${pu_dir}/mirror.jar 
+$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination2 -properties "embed://mirror.name=mirror-destination2;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=6;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=2" ${pu_dir}/mirror.jar
+$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination3 -properties "embed://mirror.name=mirror-destination3;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=6;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=3" ${pu_dir}/mirror.jar
+$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination4 -properties "embed://mirror.name=mirror-destination4;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=6;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=4" ${pu_dir}/mirror.jar
+$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination5 -properties "embed://mirror.name=mirror-destination5;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=6;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=5" ${pu_dir}/mirror.jar
+$JSHOMEDIR/bin/gs.sh deploy -zones LN -override-name mirror-destination6 -properties "embed://mirror.name=mirror-destination6;entities.package=com.gigaspaces.gigapro.destination;space.name=LondonSpace;space.partitions=6;space.backups=0;space.host=${LN_MGT_HOST};space.instance.id=6" ${pu_dir}/mirror.jar
 
 pu_dir="${script_dir}/../destination/target"
-$JSHOMEDIR/bin/gs.sh deploy -zones LN -properties "embed://space.name=LondonSpace;space.partitions=7;space.backups=0" ${pu_dir}/destination-space.jar
+$JSHOMEDIR/bin/gs.sh deploy -zones LN -properties "embed://space.name=LondonSpace;space.partitions=6;space.backups=0" ${pu_dir}/destination-space.jar
 
 pu_dir="${script_dir}/../sink/target"
 $JSHOMEDIR/bin/gs.sh deploy -zones LN -cluster total_members=3 -properties "embed://destination.space=LondonSpace;destination.host=${LN_MGT_HOST}" ${pu_dir}/sink.jar
