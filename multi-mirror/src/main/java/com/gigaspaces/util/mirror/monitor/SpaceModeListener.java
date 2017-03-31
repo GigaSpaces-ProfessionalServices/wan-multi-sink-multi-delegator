@@ -23,6 +23,7 @@ public class SpaceModeListener implements SpaceModeChangedEventListener {
             partition_member = partition_member + "_" + event.getSpaceInstance().getBackupId();
         }
         System.out.println("SpaceModeChangedEvent:  Space " + space.getName() + " - Instance " + partition_member + " moved into " + event.getNewMode());
-        mirrorStats.setPartition(space.getPartition(partitionId));
+        mirrorStats.setSpace(space);
+        mirrorStats.setPartitionIndex(partitionId);
     }
 }

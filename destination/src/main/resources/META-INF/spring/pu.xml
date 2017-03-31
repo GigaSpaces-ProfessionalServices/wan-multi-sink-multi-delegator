@@ -21,6 +21,8 @@
         <os-core:properties>
             <props>
                 <prop key="cluster-config.mirror-service.url">jini://*/mirror-destination${clusterInfo.instanceId}_container/mirror-destination${clusterInfo.instanceId}</prop>
+                <!-- Single mirror setup -->
+                <!-- <prop key="cluster-config.mirror-service.url">jini://*/mirror-destination_container/mirror-destination</prop> -->
                 <prop key="cluster-config.groups.group.repl-policy.processing-type">global-order</prop>
                 <!-- Use ALL IN CACHE -->
                 <prop key="space-config.engine.cache_policy">1</prop>

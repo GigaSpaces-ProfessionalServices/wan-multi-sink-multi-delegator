@@ -40,7 +40,7 @@
     <bean id="dataFeeder" class="com.gigaspaces.gigapro.Feeder" depends-on="sourceSpace">
         <property name="threadCount" value="4"/>
         <property name="taskCount" value="4"/>
-        <property name="objectCount" value="60"/>
+        <property name="objectCount" value="4000"/>
     </bean>
     
 </beans>

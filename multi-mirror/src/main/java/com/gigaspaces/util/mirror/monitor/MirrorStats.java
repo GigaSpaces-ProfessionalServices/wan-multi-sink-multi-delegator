@@ -1,6 +1,6 @@
 package com.gigaspaces.util.mirror.monitor;
 
-import org.openspaces.admin.space.SpacePartition;
+import org.openspaces.admin.space.Space;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -39,10 +39,15 @@ public class MirrorStats implements IMirrorStats, DynamicMBean {
     private long lastTakeTimeStamp;
     private long lastGlobalTimeStamp;
     
-    private SpacePartition partition;
-
-    public void setPartition(SpacePartition partition) {
-        this.partition = partition;
+    private Space space;
+    private int partitionIndex;
+    
+    public void setSpace(Space space) {
+        this.space = space;
+    }
+    
+    public void setPartitionIndex(int partitionIndex) {
+        this.partitionIndex = partitionIndex;
     }
 
     @Override
@@ -265,14 +270,18 @@ public class MirrorStats implements IMirrorStats, DynamicMBean {
 
     @Override
     public long getPartitionRedologSize() {
-        if (partition == null) {
-            throw new IllegalStateException("'partition' should be set");
+        return getPartitionRedologSize(partitionIndex);
+    }
+    
+    public long getPartitionRedologSize(int index) {
+        if (space == null) {
+            return 0;
         }
         long redologSize = 0;
         ClassLoader orig = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(MirrorStats.class.getClassLoader());
-            redologSize = partition.getPrimary().getStatistics().getReplicationStatistics().getOutgoingReplication().getRedoLogSize();
+            redologSize = space.getPartition(index).getPrimary().getStatistics().getReplicationStatistics().getOutgoingReplication().getRedoLogSize();
         } finally {
             Thread.currentThread().setContextClassLoader(orig);
         }

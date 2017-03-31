@@ -61,7 +61,8 @@
         <property name="spaceName" value="${space.name}"  />  
         <property name="spaceInstanceId" value="${space.instance.id}"  />  
         <property name="lookupLocator" value="${space.host}:4174"/>
-        <property name="debug" value="false" />
+        <!-- Disables DB calls to be used for mirror throughput measurement  -->
+        <property name="debug" value="true" />
     </bean> 
    
     <!--
@@ -74,7 +75,7 @@
         
         In current setup the following names are allowed:
             mirror-source<instance-id>, 'instance-id' varies from 1 to 3
-            mirror-destination<instance-id>, 'instance-id' varies from 1 to 7  
+            mirror-destination<instance-id>, 'instance-id' varies from 1 to 6  
     -->
     <os-core:space id="mirror" url="/./${mirror.name}" schema="mirror" space-sync-endpoint="hibernateSpaceSynchronizationEndpoint">
         <os-core:properties>

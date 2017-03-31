@@ -1,7 +1,8 @@
 package com.gigaspaces.gigapro.source;
 
-import org.hibernate.annotations.Cascade;
+import java.io.Serializable;
 
+import org.hibernate.annotations.Cascade;
 import com.gigaspaces.annotation.pojo.SpaceClass;
 import com.gigaspaces.annotation.pojo.SpaceId;
 
@@ -10,7 +11,7 @@ import javax.persistence.*;
 @SpaceClass
 @Entity
 @Table(name = "N", schema = "DBO")
-public class N {
+public class N implements Serializable {
     private String id;
     private D application;
     

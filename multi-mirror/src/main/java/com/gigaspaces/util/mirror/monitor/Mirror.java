@@ -1,7 +1,5 @@
 package com.gigaspaces.util.mirror.monitor;
 
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import com.gigaspaces.sync.DataSyncOperation;
 import com.gigaspaces.sync.OperationsBatchData;
 import com.gigaspaces.sync.TransactionData;
@@ -9,9 +7,10 @@ import org.hibernate.SessionFactory;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.space.Space;
-import org.openspaces.admin.space.SpacePartition;
 import org.openspaces.admin.space.events.SpaceModeChangedEventManager;
 import org.openspaces.persistency.hibernate.DefaultHibernateSpaceSynchronizationEndpoint;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.lang.management.ManagementFactory;
 import java.text.DecimalFormat;
@@ -31,7 +30,7 @@ public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint impleme
     }
 
     private DecimalFormat DEC_FORMAT;
-    private int statsInterval = 10000; //in milliseconds
+    private int statsInterval = 5000; //in milliseconds
     private boolean debug;
     private final MirrorStats stats = new MirrorStats();
     private MBeanServer mbs;
@@ -62,11 +61,15 @@ public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint impleme
             
             @Override
             public void run() {
-                stats.calculateGlobalTP();
-                stats.calculateWriteTP();
-                stats.calculateUpdateTP();
-                stats.calculateTakeTP();
-                showStats();
+                try {
+                    stats.calculateGlobalTP();
+                    stats.calculateWriteTP();
+                    stats.calculateUpdateTP();
+                    stats.calculateTakeTP();
+                    showStats();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
             }
         }, statsInterval, statsInterval, TimeUnit.MILLISECONDS);
     }
@@ -140,9 +143,20 @@ public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint impleme
                 + " T_TP: " + DEC_FORMAT.format(stats.getTakeTP())
                 + " W_MAX_TP: " + DEC_FORMAT.format(stats.getMaxWriteTP()) 
                 + " U_MAX_TP: " + DEC_FORMAT.format(stats.getMaxUpdateTP()) 
-                + " T_MAX_TP: " + DEC_FORMAT.format(stats.getMaxTakeTP()));
+                + " T_MAX_TP: " + DEC_FORMAT.format(stats.getMaxTakeTP())
+                //+ allPartitionsRedoLogStats());  // in case single mirror setup
+                + " REDO_LOG_SIZE: " + stats.getPartitionRedologSize(getPartitionId())); // in case distributed mirror setup
+        
     }
 
+   private String allPartitionsRedoLogStats() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i <= getPartitionId(); i++) {
+            sb.append(" REDO_LOG_SIZE").append(i + 1).append(": ").append(stats.getPartitionRedologSize(i));
+        }
+        return sb.toString();
+    }
+    
     private void init() {
         System.out.println("Mirror started!");
 
@@ -162,9 +176,9 @@ public class Mirror extends DefaultHibernateSpaceSynchronizationEndpoint impleme
             throw new RuntimeException("Can't locate space " + spaceName);
         }
 
-        SpacePartition partition = space.getPartition(getPartitionId());
         try {
-            stats.setPartition(partition);
+            stats.setSpace(space);
+            stats.setPartitionIndex(getPartitionId());
             modeManager = space.getSpaceModeChanged();
             spaceModeListener = new SpaceModeListener(space, stats, getPartitionId());
             modeManager.add(spaceModeListener);

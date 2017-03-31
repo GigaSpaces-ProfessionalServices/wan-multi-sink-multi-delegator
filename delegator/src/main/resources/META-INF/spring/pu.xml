@@ -29,12 +29,20 @@
         'start-embedded-lus' option controls whether Lookup Services are started inside of the delegator beans during
         gateway bootstrap. It is disabled to reuse the Lookup Services deployed to ${source.host} and ${destination.host} hosts.
     -->
-    <os-gateway:delegator id="delegator" local-gateway-name="NEWYORK_${clusterInfo.instanceId}" gateway-lookups="gatewayLookups" start-embedded-lus="false">
+   <os-gateway:delegator id="delegator" local-gateway-name="NEWYORK_${clusterInfo.instanceId}" gateway-lookups="gatewayLookups" start-embedded-lus="false">
         <os-gateway:delegations>
             <os-gateway:delegation target="LONDON_${clusterInfo.instanceId}"/>
         </os-gateway:delegations>
     </os-gateway:delegator>
-
+   
+   
+   <!-- Single gateway setup -->
+   <!-- <os-gateway:delegator id="delegator" local-gateway-name="NEWYORK" gateway-lookups="gatewayLookups" start-embedded-lus="false">
+        <os-gateway:delegations>
+            <os-gateway:delegation target="LONDON"/>
+        </os-gateway:delegations>
+    </os-gateway:delegator>  -->
+ 
     <!--
         Here we expect to find the same number of 'NEWYORK' and 'LONDON' gateway lookups as the count of source space partition primary instances.
         
@@ -47,8 +55,15 @@
         <os-gateway:lookup gateway-name="NEWYORK_1" host="${source.host}" discovery-port="4174"/>
         <os-gateway:lookup gateway-name="NEWYORK_2" host="${source.host}" discovery-port="4174"/>
         <os-gateway:lookup gateway-name="NEWYORK_3" host="${source.host}" discovery-port="4174"/>
+        
         <os-gateway:lookup gateway-name="LONDON_1" host="${destination.host}" discovery-port="4174"/>
         <os-gateway:lookup gateway-name="LONDON_2" host="${destination.host}" discovery-port="4174"/>
         <os-gateway:lookup gateway-name="LONDON_3" host="${destination.host}" discovery-port="4174"/>
+      
+        <!-- Single gateway setup -->
+        <!-- 
+            <os-gateway:lookup gateway-name="NEWYORK" host="${source.host}" discovery-port="4174"/>
+            <os-gateway:lookup gateway-name="LONDON" host="${destination.host}" discovery-port="4174"/> 
+        -->
     </os-gateway:lookups>
 </beans>

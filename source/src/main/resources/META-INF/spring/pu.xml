@@ -21,6 +21,8 @@
         <os-core:properties>
             <props>
                 <prop key="cluster-config.mirror-service.url">jini://*/mirror-source${clusterInfo.instanceId}_container/mirror-source${clusterInfo.instanceId}</prop>
+                <!-- Single mirror setup -->
+                <!-- <prop key="cluster-config.mirror-service.url">jini://*/mirror-source_container/mirror-source</prop> -->
                 <prop key="cluster-config.groups.group.repl-policy.processing-type">global-order</prop>
                 <!-- Use ALL IN CACHE -->
                 <prop key="space-config.engine.cache_policy">1</prop>
@@ -45,5 +47,9 @@
     <os-gateway:targets id="gatewayTargets" local-gateway-name="NEWYORK_${clusterInfo.instanceId}">
         <os-gateway:target name="LONDON_${clusterInfo.instanceId}"/>
     </os-gateway:targets>
-
+    
+    <!-- Single gateway setup -->
+    <!-- <os-gateway:targets id="gatewayTargets" local-gateway-name="NEWYORK">
+        <os-gateway:target name="LONDON"/>
+    </os-gateway:targets> -->
 </beans>
