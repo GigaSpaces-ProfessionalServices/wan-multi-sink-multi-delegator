@@ -1,21 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0"?>
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.gigaspaces.gigapro</groupId>
         <artifactId>multi-wan</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>destination</artifactId>
-    <packaging>jar</packaging>
+    <artifactId>redo-log-statistics</artifactId>
+    <name>redo-log-statistics</name>
+    <url>http://maven.apache.org</url>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <gsType>PU</gsType>
     </properties>
-
+    
     <dependencies>
         <dependency>
             <groupId>com.gigaspaces</groupId>
@@ -25,21 +25,15 @@
             <groupId>com.gigaspaces</groupId>
             <artifactId>gs-openspaces</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.gigaspaces.gigapro</groupId>
-            <artifactId>space-model</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.gigaspaces.gigapro</groupId>
-            <artifactId>space-statistics</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <build>
-        <finalName>destination-space</finalName>
+        <finalName>redo-log-statistics</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>

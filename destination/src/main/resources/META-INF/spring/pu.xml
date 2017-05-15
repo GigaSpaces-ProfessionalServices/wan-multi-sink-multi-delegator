@@ -2,6 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
        xmlns:os-core="http://www.openspaces.org/schema/core"
        xmlns:os-events="http://www.openspaces.org/schema/events"
        xmlns:os-remoting="http://www.openspaces.org/schema/remoting"
@@ -9,15 +10,53 @@
        xmlns:os-gateway="http://www.openspaces.org/schema/core/gateway"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+       http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.1.xsd
        http://www.openspaces.org/schema/core http://www.openspaces.org/schema/10.1/core/openspaces-core.xsd
        http://www.openspaces.org/schema/events http://www.openspaces.org/schema/10.1/events/openspaces-events.xsd
        http://www.openspaces.org/schema/remoting http://www.openspaces.org/schema/10.1/remoting/openspaces-remoting.xsd
        http://www.openspaces.org/schema/sla http://www.openspaces.org/schema/10.1/sla/openspaces-sla.xsd
        http://www.openspaces.org/schema/core/gateway http://www.openspaces.org/schema/10.1/core/gateway/openspaces-gateway.xsd">
 
-    <bean id="propertiesConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+    <bean id="propertiesConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="properties">
+            <props>
+                <prop key="stats.interval">5000</prop>
+            </props>
+        </property>
+    </bean>
     
-     <os-core:space id="space" url="/./${space.name}" mirror="true">
+    <context:component-scan base-package="com.gigaspaces.gigapro" />
+    
+    <task:annotation-driven scheduler="scheduler"/>
+    <task:scheduler id="scheduler" pool-size="3"/>
+    
+    <bean id="incomingReplicationStatistics" class="com.gigaspaces.gigapro.ReplicationStatistics" >
+        <constructor-arg name="spaceName" value="${space.name}"/>
+        <constructor-arg name="incoming" value="true"/>
+    </bean>
+    
+    <bean id="outcomingReplicationStatistics" class="com.gigaspaces.gigapro.ReplicationStatistics" >
+        <constructor-arg name="spaceName" value="${space.name}"/>
+        <constructor-arg name="incoming" value="false"/>
+    </bean>
+    
+    <bean id="replicationStatisticsFilter" class="com.gigaspaces.gigapro.ReplicationStatisticsFilter" />
+    
+    <bean id="replicationFilterProvider" class="org.openspaces.core.space.filter.replication.DefaultReplicationFilterProviderFactory">
+        <property name="outputFilter" ref="replicationStatisticsFilter"/>
+        <property name="inputFilter" ref="replicationStatisticsFilter"/>
+    </bean>
+    
+    <bean id="spaceWriteTpStatistics" class="com.gigaspaces.gigapro.SpaceWriteTpStatistics" />
+   
+    <bean id="spaceWriteTpFilter" class="com.gigaspaces.gigapro.SpaceWriteTpFilter" />
+    
+    <os-core:space id="space" url="/./${space.name}" mirror="true">
+        <os-core:replication-filter-provider ref="replicationFilterProvider"/>
+        <os-core:space-filter>
+            <os-core:filter ref="spaceWriteTpFilter" />
+            <os-core:operation code="1" /> <!-- AfterWrite operation code -->
+        </os-core:space-filter>
         <os-core:properties>
             <props>
                 <prop key="cluster-config.mirror-service.url">jini://*/mirror-destination${clusterInfo.instanceId}_container/mirror-destination${clusterInfo.instanceId}</prop>
@@ -33,10 +72,30 @@
         </os-core:properties>
     </os-core:space>
 
+    <!-- <os-core:space id="space" url="/./${space.name}" >
+        <os-core:replication-filter-provider ref="replicationFilterProvider"/>
+        <os-core:space-filter>
+            <os-core:filter ref="spaceWriteTpFilter" />
+            <os-core:operation code="1" /> AfterWrite operation code
+        </os-core:space-filter>
+        <os-core:properties>
+            <props>
+                Multi mirror setup
+                <prop key="cluster-config.mirror-service.url">jini://*/mirror-destination${clusterInfo.instanceId}_container/mirror-destination${clusterInfo.instanceId}</prop>
+                Single mirror setup
+                <prop key="cluster-config.mirror-service.url">jini://*/mirror-destination_container/mirror-destination</prop>
+                <prop key="cluster-config.groups.group.repl-policy.processing-type">global-order</prop>
+                Use ALL IN CACHE
+                <prop key="space-config.engine.cache_policy">1</prop>
+                <prop key="space-config.external-data-source.usage">read-only</prop>
+                <prop key="cluster-config.cache-loader.external-data-source">true</prop>
+                <prop key="cluster-config.cache-loader.central-data-source">true</prop>
+            </props>
+        </os-core:properties>
+    </os-core:space> -->
 
     <!--
         OpenSpaces simplified space API built on top of IJSpace/JavaSpace.
     -->
     <os-core:giga-space id="gigaSpace" space="space"/>
-
 </beans>

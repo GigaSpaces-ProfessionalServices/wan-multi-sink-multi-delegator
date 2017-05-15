@@ -1,19 +1,24 @@
 package com.gigaspaces.util.mirror.monitor;
 
-import org.openspaces.admin.space.Space;
+import org.springframework.scheduling.annotation.Scheduled;
 
+import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
 
-import javax.management.*;
+public class MirrorStats implements IMirrorStats {
 
-public class MirrorStats implements IMirrorStats, DynamicMBean {
+    private static final Logger LOG = Logger.getLogger(MirrorStats.class.getName());
 
-    AtomicInteger counterWrite = new AtomicInteger(0);
-    AtomicInteger counterUpdate = new AtomicInteger(0);
-    AtomicInteger counterTake = new AtomicInteger(0);
-    AtomicInteger globalCounter = new AtomicInteger(0);
+    private final String mirrorName;
+    
+    private AtomicInteger counterWrite = new AtomicInteger(0);
+    private AtomicInteger counterUpdate = new AtomicInteger(0);
+    private AtomicInteger counterTake = new AtomicInteger(0);
+    private AtomicInteger globalCounter = new AtomicInteger(0);
 
     private ReadWriteLock writeOperationLock = new ReentrantReadWriteLock();
     private ReadWriteLock updateOperationLock = new ReentrantReadWriteLock();
@@ -39,17 +44,35 @@ public class MirrorStats implements IMirrorStats, DynamicMBean {
     private long lastTakeTimeStamp;
     private long lastGlobalTimeStamp;
     
-    private Space space;
-    private int partitionIndex;
+    private DecimalFormat decimalFormat;
     
-    public void setSpace(Space space) {
-        this.space = space;
+    public MirrorStats(String mirrorName) {
+        this.mirrorName = mirrorName;
+        decimalFormat = new DecimalFormat();
+        decimalFormat.setMaximumFractionDigits(1);
+        decimalFormat.setGroupingUsed(false);
     }
     
-    public void setPartitionIndex(int partitionIndex) {
-        this.partitionIndex = partitionIndex;
+    @Scheduled(fixedRateString = "${stats.interval}")
+    public void start() {
+        calculateGlobalTP();
+        calculateWriteTP();
+        calculateUpdateTP();
+        calculateTakeTP();
+        showStats();
     }
-
+    
+    private void showStats() {
+        LOG.info(new Date() + " Mirror: " + mirrorName
+                + " write_tp: " + decimalFormat.format(getWriteTP()) 
+                + " update_tp: " + decimalFormat.format(getUpdateTP()) 
+                + " take_tp: " + decimalFormat.format(getTakeTP())
+                + " max_write_tp: " + decimalFormat.format(getMaxWriteTP()) 
+                + " max_update_tp: " + decimalFormat.format(getMaxUpdateTP()) 
+                + " max_take_tp: " + decimalFormat.format(getMaxTakeTP())
+                + " total_tp: " + decimalFormat.format(getGlobalTP()));
+    }
+    
     @Override
     public int getTakeCount() {
         return counterTake.get();
@@ -63,76 +86,6 @@ public class MirrorStats implements IMirrorStats, DynamicMBean {
     @Override
     public int getWriteCount() {
         return counterWrite.get();
-    }
-
-    @Override
-    public Object getAttribute(String name) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        switch(name) {
-            case "WriteCount": return getWriteCount();
-            case "TakeCount": return getTakeCount();
-            case "UpdateCount": return getUpdateCount();
-            case "WriteTP": return getWriteTP();
-            case "TakeTP": return getTakeTP();
-            case "UpdateTP": return getUpdateTP();
-            case "MaxWriteTP": return getMaxWriteTP();
-            case "MaxTakeTP": return getMaxTakeTP();
-            case "MaxUpdateTP": return getMaxUpdateTP();
-            case "GlobalCount": return getGlobalCount();
-            case "PartitionRedoLogSize": return getPartitionRedologSize();
-            default: return null;
-        }
-    }
-
-    @Override
-    public AttributeList getAttributes(String[] arg0) {
-        return null;
-    }
-
-    @Override
-    public MBeanInfo getMBeanInfo() {
-        MBeanAttributeInfo[] attributes = new MBeanAttributeInfo[11];
-
-        try {
-            attributes[0] = new MBeanAttributeInfo("WriteCount", "WriteCount", MirrorStats.class.getMethod("getWriteCount"), null);
-            attributes[1] = new MBeanAttributeInfo("TakeCount", "TakeCount", MirrorStats.class.getMethod("getTakeCount"), null);
-            attributes[2] = new MBeanAttributeInfo("UpdateCount", "UpdateCount", MirrorStats.class.getMethod("getUpdateCount"), null);
-
-            attributes[3] = new MBeanAttributeInfo("WriteTP", "WriteTP", MirrorStats.class.getMethod("getWriteTP"), null);
-            attributes[4] = new MBeanAttributeInfo("TakeTP", "TakeTP", MirrorStats.class.getMethod("getTakeTP"), null);
-            attributes[5] = new MBeanAttributeInfo("UpdateTP", "UpdateTP", MirrorStats.class.getMethod("getUpdateTP"), null);
-            
-            attributes[6] = new MBeanAttributeInfo("MaxWriteTP", "MaxWriteTP", MirrorStats.class.getMethod("getMaxWriteTP"), null);
-            attributes[7] = new MBeanAttributeInfo("MaxTakeTP", "MaxTakeTP", MirrorStats.class.getMethod("getMaxTakeTP"), null);
-            attributes[8] = new MBeanAttributeInfo("MaxUpdateTP", "MaxUpdateTP", MirrorStats.class.getMethod("getMaxUpdateTP"), null);
-
-            attributes[9] = new MBeanAttributeInfo("GlobalCount", "GlobalCount", MirrorStats.class.getMethod("getGlobalCount"), null);
-
-            attributes[10] = new MBeanAttributeInfo("PartitionRedoLogSize", "PartitionRedoLogSize", MirrorStats.class.getMethod("getPartitionRedologSize"), null);
-
-        } catch (IntrospectionException e) {
-            e.printStackTrace();
-        }  catch (SecurityException e1) {
-            e1.printStackTrace();
-        } catch (NoSuchMethodException e1) {
-            e1.printStackTrace();
-        }
-
-       return new MBeanInfo("MirrorStats", "MirrorStats desc", attributes, null, null, null);
-    }
-
-    @Override
-    public Object invoke(String arg0, Object[] arg1, String[] arg2) throws MBeanException, ReflectionException {
-        return null;
-    }
-
-    @Override
-    public void setAttribute(Attribute arg0) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-
-    }
-
-    @Override
-    public AttributeList setAttributes(AttributeList arg0) {
-        return null;
     }
     
     public void calculateWriteTP() {
@@ -269,22 +222,22 @@ public class MirrorStats implements IMirrorStats, DynamicMBean {
     }
 
     @Override
-    public long getPartitionRedologSize() {
-        return getPartitionRedologSize(partitionIndex);
+    public void incrementWriteCount() {
+        counterWrite.incrementAndGet();
     }
-    
-    public long getPartitionRedologSize(int index) {
-        if (space == null) {
-            return 0;
-        }
-        long redologSize = 0;
-        ClassLoader orig = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader(MirrorStats.class.getClassLoader());
-            redologSize = space.getPartition(index).getPrimary().getStatistics().getReplicationStatistics().getOutgoingReplication().getRedoLogSize();
-        } finally {
-            Thread.currentThread().setContextClassLoader(orig);
-        }
-        return redologSize;
+
+    @Override
+    public void incrementTakeCount() {
+        counterTake.incrementAndGet();
+    }
+
+    @Override
+    public void incrementUpdateCount() {
+       counterUpdate.incrementAndGet();
+    }
+
+    @Override
+    public void incrementGlobalCount() {
+        globalCounter.incrementAndGet();
     }
 }
